@@ -68,15 +68,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9fa1a21c7142e354fae00b01d0bb452c, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.018006777
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9fa1a21c7142e354fae00b01d0bb452c, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.0022314154
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9fa1a21c7142e354fae00b01d0bb452c, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.026257593
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9fa1a21c7142e354fae00b01d0bb452c, type: 3}
       propertyPath: m_LocalRotation.w
@@ -106,6 +106,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 5.448
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 9fa1a21c7142e354fae00b01d0bb452c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1b0050e6dbe765a43b63dff7402ef3c5, type: 2}
     - target: {fileID: 919132149155446097, guid: 9fa1a21c7142e354fae00b01d0bb452c, type: 3}
       propertyPath: m_Name
       value: Fish
