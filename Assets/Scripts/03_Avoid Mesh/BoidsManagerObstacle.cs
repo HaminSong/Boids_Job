@@ -6,37 +6,32 @@ using UnityEngine.Jobs;
 
 /// <summary>
 /// 장애물 회피 Boids 매니저.
-///
-/// 경계 처리: Wrap-around (UpdatePositionObstacleJob 내부 처리)
-///   - 경계를 넘으면 반대편으로 이동. 원점 수렴 없음.
-///   - transform 갱신도 같은 Job 안에서 처리하므로 텔레포트 정상 작동.
 /// </summary>
 public class BoidsManagerObstacle : MonoBehaviour
 {
     [Header("Prefab")]
-    [Tooltip("스폰할 객체 prefab")]
     public GameObject boidPrefab;
 
     [Header("Spawn")]
-    [Tooltip("스폰할 객체 수")]
+    [Tooltip("스폰할 Boid 수")]
     public int boidCount = 5000;
-    [Tooltip("스폰 영역 크기 (박스 형태)")]
+    [Tooltip("스폰 영역 크기 (XYZ)")]
     public Vector3 spawnSize = new Vector3(300f, 70f, 300f);
 
     [Header("Speed")]
-    [Tooltip("객체의 최소 속도")]
+    [Tooltip("최소 속도")]
     public float minSpeed = 5f;
-    [Tooltip("객체의 최대 속도")]
+    [Tooltip("최대 속도")]
     public float maxSpeed = 15f;
 
     [Header("Perception")]
-    [Tooltip("인식 반경")]
+    [Tooltip("이웃으로 인식하는 반경")]
     public float perceptionRadius = 7.5f;
-    [Tooltip("밀어내는 반경")]
+    [Tooltip("이 거리 이하면 밀어냄")]
     public float separationRadius = 1f;
-    [Tooltip("응집 반경")]
+    [Tooltip("Cohesion 전용 반경. perceptionRadius보다 좁게 설정.")]
     public float cohesionRadius = 3f;
-    [Tooltip("응집 객체 수")]
+    [Tooltip("최대 이웃 수. 너무 크면 전체가 뭉침.")]
     public int maxNeighbors = 20;
 
     [Header("Weights")]
@@ -48,9 +43,9 @@ public class BoidsManagerObstacle : MonoBehaviour
     public float cohesionWeight = 1.0f;
 
     [Header("Boundary")]
-    [Tooltip("박스 경계 크기 (박스 형태)")]
+    [Tooltip("박스 경계 크기 (XYZ)")]
     public Vector3 boundsSize = new Vector3(400f, 150f, 400f);
-    [Tooltip("경계 복귀 감지 시작 거리")]
+    [Tooltip("경계 안쪽 감지 시작 거리")]
     public float boundsSoftZone = 25f;
     [Tooltip("경계 복귀 힘 세기")]
     public float boundsWeight = 15f;
@@ -73,7 +68,7 @@ public class BoidsManagerObstacle : MonoBehaviour
 
     [Header("Job Tuning")]
     [Tooltip("IJobParallelFor 배치 크기")]
-    public int innerBatchCount = 64;
+    public int innerBatchCount = 32;
 
     NativeArray<float3> positions;
     NativeArray<float3> velocities;
@@ -101,11 +96,19 @@ public class BoidsManagerObstacle : MonoBehaviour
 
         for (int i = 0; i < boidCount; i++)
         {
-            Vector3 spawnPos = new Vector3(
-                UnityEngine.Random.Range(-spawnSize.x * 0.5f, spawnSize.x * 0.5f),
-                UnityEngine.Random.Range(-spawnSize.y * 0.5f, spawnSize.y * 0.5f),
-                UnityEngine.Random.Range(-spawnSize.z * 0.5f, spawnSize.z * 0.5f)
-            );
+            // 장애물 콜라이더 안에서 스폰되지 않도록 위치 재시도
+            Vector3 spawnPos;
+            int attempts = 0;
+            do
+            {
+                spawnPos = new Vector3(
+                    UnityEngine.Random.Range(-spawnSize.x * 0.5f, spawnSize.x * 0.5f),
+                    UnityEngine.Random.Range(-spawnSize.y * 0.5f, spawnSize.y * 0.5f),
+                    UnityEngine.Random.Range(-spawnSize.z * 0.5f, spawnSize.z * 0.5f)
+                );
+                attempts++;
+            }
+            while (Physics.CheckSphere(spawnPos, sphereRadius * 2f, obstacleLayerMask) && attempts < 20);
 
             GameObject go = Instantiate(boidPrefab, spawnPos, UnityEngine.Random.rotation);
             transforms[i] = go.transform;

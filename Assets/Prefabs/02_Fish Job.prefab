@@ -9,9 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1603975292970218143}
-  - component: {fileID: 3786511408618956102}
   m_Layer: 6
-  m_Name: Fish
+  m_Name: 02_Fish Job
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -33,19 +32,6 @@ Transform:
   - {fileID: 6266334058877785329}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3786511408618956102
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3037790537258890530}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8e6bc61197cee904eb7749383ec97876, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Boid
-  velocity: {x: 0, y: 0, z: 0}
 --- !u!1001 &5871784468622799642
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -109,7 +95,7 @@ PrefabInstance:
     - target: {fileID: -7511558181221131132, guid: 9fa1a21c7142e354fae00b01d0bb452c, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 1b0050e6dbe765a43b63dff7402ef3c5, type: 2}
+      objectReference: {fileID: 2100000, guid: dc836d2aa91d41941af3d14a166493ca, type: 2}
     - target: {fileID: 919132149155446097, guid: 9fa1a21c7142e354fae00b01d0bb452c, type: 3}
       propertyPath: m_Name
       value: Fish

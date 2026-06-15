@@ -128,6 +128,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 174422752}
+  - component: {fileID: 174422754}
   - component: {fileID: 174422751}
   - component: {fileID: 174422750}
   - component: {fileID: 174422753}
@@ -256,6 +257,25 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!114 &174422754
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 174422749}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c44defafb11fcb4d9f0865c053bc780, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraController
+  moveSpeed: 20
+  minMoveSpeed: 1
+  maxMoveSpeed: 100
+  speedScrollSensitivity: 5
+  shiftSpeedMultiplier: 2.5
+  lookSensitivity: 3
+  zoomSensitivity: 10
 --- !u!1 &326456525
 GameObject:
   m_ObjectHideFlags: 0
@@ -285,7 +305,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7da30b870adbe84f89376bb3878428b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoidsManagerObstacle
-  boidPrefab: {fileID: 3037790537258890530, guid: 02987e021fba02549b24063c801a9086, type: 3}
+  boidPrefab: {fileID: 3037790537258890530, guid: 9107ea548901c0f4fbcc5ba06f661403, type: 3}
   boidCount: 5000
   spawnSize: {x: 300, y: 70, z: 300}
   minSpeed: 5
@@ -556,13 +576,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1863523155}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.2047011, y: -0.37791076, z: 0.13656592, w: 0.89254165}
-  m_LocalPosition: {x: 2.11, y: 0, z: 84.72}
-  m_LocalScale: {x: 20, y: 20, z: 20}
+  m_LocalRotation: {x: -0.17790405, y: -0.37552068, z: 0.0736901, w: 0.9065893}
+  m_LocalPosition: {x: 0, y: 0, z: 20}
+  m_LocalScale: {x: 10, y: 10, z: 10}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: -15.2, y: -49.2, z: 24.39}
+  m_LocalEulerAnglesHint: {x: -15.499, y: -47.205, z: 16.1}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
