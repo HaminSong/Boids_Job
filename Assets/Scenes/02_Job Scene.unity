@@ -432,7 +432,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b84c231322c96fd4cbedc226adde64a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoidsManagerJob
-  boidPrefab: {fileID: 3037790537258890530, guid: d781465dca5c7634ebdb2aeea8bb64be, type: 3}
+  boidPrefab: {fileID: 2735377527213475236, guid: 72cef14a2c0cb6c47a8192c95828de54, type: 3}
   boidCount: 5000
   spawnDir: 10
   minSpeed: 5
