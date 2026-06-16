@@ -5,9 +5,12 @@ using Unity.Mathematics;
 using UnityEngine.Jobs;
 
 /// <summary>
-/// 장애물 회피 Boids 매니저.
+/// Boids 로직 개선 버전 (03_Improved Scene).
+/// BoidsManagerJob(02_Job Scene) 대비 변경 사항:
+///   - BoidForceImprovedJob 사용 (Cohesion 분리, maxNeighbors, Wander, Leveling, AABB 경계)
+///   - UpdatePositionObstacleJob 재사용 (Soft Zone 속도 감쇠 + 경계 클램핑)
 /// </summary>
-public class BoidsManagerObstacle : MonoBehaviour
+public class BoidsManagerImproved : MonoBehaviour
 {
     [Header("Prefab")]
     public GameObject boidPrefab;
@@ -16,7 +19,7 @@ public class BoidsManagerObstacle : MonoBehaviour
     [Tooltip("스폰할 Boid 수")]
     public int boidCount = 5000;
     [Tooltip("스폰 영역 크기 (XYZ)")]
-    public Vector3 spawnSize = new Vector3(300f, 70f, 300f);
+    public Vector3 spawnSize = new Vector3(400f, 150f, 400f);
 
     [Header("Speed")]
     [Tooltip("최소 속도")]
@@ -28,11 +31,11 @@ public class BoidsManagerObstacle : MonoBehaviour
     [Tooltip("이웃으로 인식하는 반경")]
     public float perceptionRadius = 7.5f;
     [Tooltip("이 거리 이하면 밀어냄")]
-    public float separationRadius = 1f;
+    public float separationRadius = 2f;
     [Tooltip("Cohesion 전용 반경. perceptionRadius보다 좁게 설정.")]
     public float cohesionRadius = 3f;
     [Tooltip("최대 이웃 수. 너무 크면 전체가 뭉침.")]
-    public int maxNeighbors = 20;
+    public int maxNeighbors = 30;
 
     [Header("Weights")]
     [Tooltip("분리 힘 가중치")]
@@ -44,7 +47,7 @@ public class BoidsManagerObstacle : MonoBehaviour
 
     [Header("Boundary")]
     [Tooltip("박스 경계 크기 (XYZ)")]
-    public Vector3 boundsSize = new Vector3(400f, 150f, 400f);
+    public Vector3 boundsSize = new Vector3(600f, 225f, 600f);
     [Tooltip("경계 안쪽 감지 시작 거리")]
     public float boundsSoftZone = 25f;
     [Tooltip("경계 복귀 힘 세기")]
@@ -56,26 +59,13 @@ public class BoidsManagerObstacle : MonoBehaviour
     [Tooltip("수직으로 꺾일수록 수평으로 되돌리는 힘")]
     public float levelingStrength = 5f;
 
-    [Header("Obstacle Avoidance")]
-    [Tooltip("장애물로 인식할 레이어. Boid 레이어는 반드시 제외할 것.")]
-    public LayerMask obstacleLayerMask;
-    [Tooltip("전방 탐지 거리")]
-    public float rayDistance = 20f;
-    [Tooltip("Spherecast 반경. Boid 모델 크기에 맞게 조절.")]
-    public float sphereRadius = 0.4f;
-    [Tooltip("장애물 회피 힘 가중치")]
-    public float avoidWeight = 100f;
-
     [Header("Job Tuning")]
-    [Tooltip("IJobParallelFor 배치 크기")]
-    public int innerBatchCount = 32;
+    [Tooltip("IJobParallelFor 배치 크기. 32~64 권장.")]
+    public int innerBatchCount = 64;
 
     NativeArray<float3> positions;
     NativeArray<float3> velocities;
     NativeArray<float3> forces;
-    NativeArray<float3> avoidForces;
-    NativeArray<SpherecastCommand> rayCommands;
-    NativeArray<RaycastHit> rayHits;
     TransformAccessArray transformAccessArray;
 
     void Start()
@@ -83,9 +73,6 @@ public class BoidsManagerObstacle : MonoBehaviour
         positions = new NativeArray<float3>(boidCount, Allocator.Persistent);
         velocities = new NativeArray<float3>(boidCount, Allocator.Persistent);
         forces = new NativeArray<float3>(boidCount, Allocator.Persistent);
-        avoidForces = new NativeArray<float3>(boidCount, Allocator.Persistent);
-        rayCommands = new NativeArray<SpherecastCommand>(boidCount, Allocator.Persistent);
-        rayHits = new NativeArray<RaycastHit>(boidCount, Allocator.Persistent);
 
         SpawnBoids();
     }
@@ -96,19 +83,11 @@ public class BoidsManagerObstacle : MonoBehaviour
 
         for (int i = 0; i < boidCount; i++)
         {
-            // 장애물 콜라이더 안에서 스폰되지 않도록 위치 재시도
-            Vector3 spawnPos;
-            int attempts = 0;
-            do
-            {
-                spawnPos = new Vector3(
-                    UnityEngine.Random.Range(-spawnSize.x * 0.5f, spawnSize.x * 0.5f),
-                    UnityEngine.Random.Range(-spawnSize.y * 0.5f, spawnSize.y * 0.5f),
-                    UnityEngine.Random.Range(-spawnSize.z * 0.5f, spawnSize.z * 0.5f)
-                );
-                attempts++;
-            }
-            while (Physics.CheckSphere(spawnPos, sphereRadius * 2f, obstacleLayerMask) && attempts < 20);
+            Vector3 spawnPos = new Vector3(
+                UnityEngine.Random.Range(-spawnSize.x * 0.5f, spawnSize.x * 0.5f),
+                UnityEngine.Random.Range(-spawnSize.y * 0.5f, spawnSize.y * 0.5f),
+                UnityEngine.Random.Range(-spawnSize.z * 0.5f, spawnSize.z * 0.5f)
+            );
 
             GameObject go = Instantiate(boidPrefab, spawnPos, UnityEngine.Random.rotation);
             transforms[i] = go.transform;
@@ -125,42 +104,17 @@ public class BoidsManagerObstacle : MonoBehaviour
 
     void Update()
     {
-        // 1) SpherecastCommand 명령 생성
-        var prepareJob = new PrepareRaycastJob
-        {
-            positions = positions,
-            velocities = velocities,
-            rayCommands = rayCommands,
-            sphereRadius = sphereRadius,
-            rayDistance = rayDistance,
-            layerMask = obstacleLayerMask,
-        };
-        JobHandle prepareHandle = prepareJob.Schedule(boidCount, innerBatchCount);
-
-        // 2) Physics 일괄 Spherecast
-        JobHandle rayHandle = SpherecastCommand.ScheduleBatch(
-            rayCommands, rayHits, innerBatchCount, maxHits: 1, dependsOn: prepareHandle
+        float3 halfSize = new float3(
+            boundsSize.x * 0.5f,
+            boundsSize.y * 0.5f,
+            boundsSize.z * 0.5f
         );
 
-        // 3) 회피 힘 계산
-        var avoidJob = new ObstacleAvoidJob
-        {
-            rayHits = rayHits,
-            positions = positions,
-            velocities = velocities,
-            avoidForces = avoidForces,
-            rayDistance = rayDistance,
-            avoidWeight = avoidWeight,
-        };
-        JobHandle avoidHandle = avoidJob.Schedule(boidCount, innerBatchCount, rayHandle);
-
-        // 4) Boids 힘 계산
-        float3 halfSize = new Unity.Mathematics.float3(boundsSize.x * 0.5f, boundsSize.y * 0.5f, boundsSize.z * 0.5f);
-        var forceJob = new BoidForceObstacleJob
+        // ── 1) 힘 계산 ──────────────────────────────────────────
+        var forceJob = new BoidForceImprovedJob
         {
             positions = positions,
             velocities = velocities,
-            avoidForces = avoidForces,
             forces = forces,
             perceptionRadius = perceptionRadius,
             separationRadius = separationRadius,
@@ -177,10 +131,10 @@ public class BoidsManagerObstacle : MonoBehaviour
             levelingStrength = levelingStrength,
             count = boidCount,
         };
-        JobHandle forceHandle = forceJob.Schedule(boidCount, innerBatchCount, avoidHandle);
+        JobHandle forceHandle = forceJob.Schedule(boidCount, innerBatchCount);
 
-        // 5) 위치·회전 업데이트 + Wrap-around
-        var updateJob = new UpdatePositionObstacleJob
+        // ── 2) 위치·회전 업데이트 ───────────────────────────────
+        var updateJob = new UpdatePositionImprovedJob
         {
             forces = forces,
             velocities = velocities,
@@ -189,6 +143,7 @@ public class BoidsManagerObstacle : MonoBehaviour
             minSpeed = minSpeed,
             maxSpeed = maxSpeed,
             boundsHalfSize = halfSize,
+            boundsSoftZone = boundsSoftZone,
         };
         JobHandle updateHandle = updateJob.Schedule(transformAccessArray, forceHandle);
 
@@ -200,9 +155,6 @@ public class BoidsManagerObstacle : MonoBehaviour
         if (positions.IsCreated) positions.Dispose();
         if (velocities.IsCreated) velocities.Dispose();
         if (forces.IsCreated) forces.Dispose();
-        if (avoidForces.IsCreated) avoidForces.Dispose();
-        if (rayCommands.IsCreated) rayCommands.Dispose();
-        if (rayHits.IsCreated) rayHits.Dispose();
         if (transformAccessArray.isCreated) transformAccessArray.Dispose();
     }
 

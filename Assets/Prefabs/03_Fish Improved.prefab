@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1603975292970218143}
   m_Layer: 6
-  m_Name: 03_Fish Avoid
+  m_Name: 03_Fish Improved
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

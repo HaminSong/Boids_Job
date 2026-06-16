@@ -403,6 +403,9 @@ MonoBehaviour:
   shiftSpeedMultiplier: 2.5
   lookSensitivity: 3
   zoomSensitivity: 10
+  speedUiPrefab: {fileID: 3838120622139779585, guid: 48db08805b3d42a4e9c6e046e6c359a9, type: 3}
+  uiDisplayTime: 1
+  uiFadeSpeed: 4
 --- !u!1 &2012386435
 GameObject:
   m_ObjectHideFlags: 0
