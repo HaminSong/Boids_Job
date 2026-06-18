@@ -4,10 +4,10 @@ using UnityEngine.UI;
 public class CameraController : MonoBehaviour
 {
     [Header("이동 속도 설정")]
-    public float moveSpeed = 20f;
+    public float moveSpeed = 50f;
     public float minMoveSpeed = 1f;      // 최소 속도 제한
     public float maxMoveSpeed = 100f;    // 최대 속도 제한
-    public float speedScrollSensitivity = 5f; // 휠을 굴릴 때 속도 변화량
+    public float speedScrollSensitivity = 10f; // 휠을 굴릴 때 속도 변화량
 
     public float shiftSpeedMultiplier = 2.5f; // Shift 누를 때 속도 배율
 
@@ -139,7 +139,7 @@ public class CameraController : MonoBehaviour
         if (speedUiText == null || speedUiCanvasGroup == null) return;
 
         // 소수점 첫째 자리까지 표시
-        speedUiText.text = speed.ToString("F2");
+        speedUiText.text = speed.ToString("F1");
 
         speedUiCanvasGroup.alpha = 1f; // 즉시 활성화
         uiHideTimer = uiDisplayTime;   // 유지 타이머 초기화

@@ -33,9 +33,9 @@ public class BoidsManagerImproved : MonoBehaviour
     [Tooltip("이 거리 이하면 밀어냄")]
     public float separationRadius = 2f;
     [Tooltip("Cohesion 전용 반경. perceptionRadius보다 좁게 설정.")]
-    public float cohesionRadius = 3f;
+    public float cohesionRadius = 4f;
     [Tooltip("최대 이웃 수. 너무 크면 전체가 뭉침.")]
-    public int maxNeighbors = 30;
+    public int maxNeighbors = 25;
 
     [Header("Weights")]
     [Tooltip("분리 힘 가중치")]

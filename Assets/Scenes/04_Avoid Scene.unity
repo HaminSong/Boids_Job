@@ -315,8 +315,8 @@ MonoBehaviour:
   maxSpeed: 15
   perceptionRadius: 7.5
   separationRadius: 2
-  cohesionRadius: 3
-  maxNeighbors: 30
+  cohesionRadius: 4
+  maxNeighbors: 25
   separationWeight: 1.5
   alignmentWeight: 1
   cohesionWeight: 1

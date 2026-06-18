@@ -399,7 +399,7 @@ MonoBehaviour:
   moveSpeed: 20
   minMoveSpeed: 1
   maxMoveSpeed: 100
-  speedScrollSensitivity: 5
+  speedScrollSensitivity: 10
   shiftSpeedMultiplier: 2.5
   lookSensitivity: 3
   zoomSensitivity: 10
