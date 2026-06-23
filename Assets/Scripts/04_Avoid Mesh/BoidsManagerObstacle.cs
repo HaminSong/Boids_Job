@@ -216,5 +216,22 @@ public class BoidsManagerObstacle : MonoBehaviour
 
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireCube(Vector3.zero, spawnSize);
+
+        // 장애물에 히트된 Boid만 시각화
+        if (!positions.IsCreated || !velocities.IsCreated || !rayHits.IsCreated) return;
+
+        Gizmos.color = Color.red;
+        for (int i = 0; i < boidCount; i++)
+        {
+            RaycastHit hit = rayHits[i];
+            if (hit.distance <= 0f) continue;
+
+            Vector3 pos = positions[i];
+            Vector3 vel = velocities[i];
+            Vector3 dir = vel.magnitude > 0f ? vel.normalized : Vector3.forward;
+
+            Gizmos.DrawRay(pos, dir * hit.distance);
+            Gizmos.DrawWireSphere(pos + dir * hit.distance, sphereRadius);
+        }
     }
 }

@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7350660869523927169}
   m_Layer: 6
-  m_Name: 99_Fish Shader
+  m_Name: 00_Fish Shader
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

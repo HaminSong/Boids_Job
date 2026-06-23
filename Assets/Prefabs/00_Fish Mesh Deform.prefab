@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 920705543500528437}
   m_Layer: 6
-  m_Name: 99_Fish Mesh Deform
+  m_Name: 00_Fish Mesh Deform
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -634,7 +634,7 @@ GameObject:
   - component: {fileID: 3634819409894946083}
   - component: {fileID: 1206801875244409594}
   m_Layer: 6
-  m_Name: 99_Fish Default
+  m_Name: 00_Fish Default
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -679,7 +679,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2735377527213475236, guid: 72cef14a2c0cb6c47a8192c95828de54, type: 3}
       propertyPath: m_Name
-      value: 99_Fish Shader
+      value: 00_Fish Shader
       objectReference: {fileID: 0}
     - target: {fileID: 7350660869523927169, guid: 72cef14a2c0cb6c47a8192c95828de54, type: 3}
       propertyPath: m_LocalPosition.x
@@ -776,7 +776,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8110555581050628793, guid: 91bd0a5e1e74e8e43bb5fb259de64d03, type: 3}
       propertyPath: m_Name
-      value: 99_Fish Mesh Deform
+      value: 00_Fish Mesh Deform
       objectReference: {fileID: 0}
     - target: {fileID: 8110555581050628793, guid: 91bd0a5e1e74e8e43bb5fb259de64d03, type: 3}
       propertyPath: m_IsActive
