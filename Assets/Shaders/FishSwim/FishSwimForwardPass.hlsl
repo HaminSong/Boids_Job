@@ -20,6 +20,7 @@ struct Varyings
     float3 positionWS  : TEXCOORD1;
     float3 normalWS    : TEXCOORD2;
     float4 shadowCoord : TEXCOORD3;
+    float  fogFactor   : TEXCOORD4;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
@@ -46,6 +47,7 @@ Varyings vert(Attributes IN)
     OUT.normalWS    = nrmInputs.normalWS;
     OUT.uv          = TRANSFORM_TEX(IN.uv, _BaseMap);
     OUT.shadowCoord = GetShadowCoord(posInputs);
+    OUT.fogFactor   = ComputeFogFactor(posInputs.positionCS.z);
 
     return OUT;
 }
@@ -63,7 +65,8 @@ half4 frag(Varyings IN) : SV_Target
     inputData.viewDirectionWS         = normalize(GetWorldSpaceViewDir(IN.positionWS));
     inputData.shadowCoord             = IN.shadowCoord;
     inputData.bakedGI                 = SampleSH(normalize(IN.normalWS));
-    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.positionHCS); // Forward+ 타일 조회용
+    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.positionHCS);
+    inputData.fogCoord                = IN.fogFactor;
 
     SurfaceData surface = (SurfaceData)0;
     surface.albedo     = baseColor.rgb;
@@ -71,9 +74,11 @@ half4 frag(Varyings IN) : SV_Target
     surface.metallic   = metallic;
     surface.smoothness = _Smoothness;
     surface.occlusion  = 1.0;
-    surface.normalTS   = half3(0, 0, 1); // 노말맵 없음
+    surface.normalTS   = half3(0, 0, 1);
 
-    return UniversalFragmentPBR(inputData, surface);
+    half4 color = UniversalFragmentPBR(inputData, surface);
+    color.rgb = MixFog(color.rgb, IN.fogFactor);
+    return color;
 }
 
 #endif

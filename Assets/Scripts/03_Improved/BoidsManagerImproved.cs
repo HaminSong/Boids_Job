@@ -46,6 +46,10 @@ public class BoidsManagerImproved : MonoBehaviour
     public float cohesionWeight = 1.0f;
 
     [Header("Boundary")]
+    [Tooltip("바운더리 중심 오프셋. 비워두면(true) 이 오브젝트의 transform.position을 중심으로 사용한다.")]
+    public bool useTransformAsCenter = true;
+    [Tooltip("useTransformAsCenter가 false일 때 사용할 바운더리 중심 좌표")]
+    public Vector3 boundsCenter = Vector3.zero;
     [Tooltip("박스 경계 크기 (XYZ)")]
     public Vector3 boundsSize = new Vector3(600f, 225f, 600f);
     [Tooltip("경계 안쪽 감지 시작 거리")]
@@ -68,6 +72,11 @@ public class BoidsManagerImproved : MonoBehaviour
     NativeArray<float3> forces;
     TransformAccessArray transformAccessArray;
 
+    Vector3 GetBoundsCenter()
+    {
+        return useTransformAsCenter ? transform.position : boundsCenter;
+    }
+
     void Start()
     {
         positions = new NativeArray<float3>(boidCount, Allocator.Persistent);
@@ -80,10 +89,11 @@ public class BoidsManagerImproved : MonoBehaviour
     void SpawnBoids()
     {
         Transform[] transforms = new Transform[boidCount];
+        Vector3 center = GetBoundsCenter();
 
         for (int i = 0; i < boidCount; i++)
         {
-            Vector3 spawnPos = new Vector3(
+            Vector3 spawnPos = center + new Vector3(
                 UnityEngine.Random.Range(-spawnSize.x * 0.5f, spawnSize.x * 0.5f),
                 UnityEngine.Random.Range(-spawnSize.y * 0.5f, spawnSize.y * 0.5f),
                 UnityEngine.Random.Range(-spawnSize.z * 0.5f, spawnSize.z * 0.5f)
@@ -104,6 +114,7 @@ public class BoidsManagerImproved : MonoBehaviour
 
     void Update()
     {
+        float3 center = (float3)GetBoundsCenter();
         float3 halfSize = new float3(
             boundsSize.x * 0.5f,
             boundsSize.y * 0.5f,
@@ -123,6 +134,7 @@ public class BoidsManagerImproved : MonoBehaviour
             separationWeight = separationWeight,
             alignmentWeight = alignmentWeight,
             cohesionWeight = cohesionWeight,
+            boundsCenter = center,
             boundsHalfSize = halfSize,
             boundsSoftZone = boundsSoftZone,
             boundsWeight = boundsWeight,
@@ -142,6 +154,7 @@ public class BoidsManagerImproved : MonoBehaviour
             deltaTime = Time.deltaTime,
             minSpeed = minSpeed,
             maxSpeed = maxSpeed,
+            boundsCenter = center,
             boundsHalfSize = halfSize,
             boundsSoftZone = boundsSoftZone,
         };
@@ -160,13 +173,15 @@ public class BoidsManagerImproved : MonoBehaviour
 
     void OnDrawGizmosSelected()
     {
+        Vector3 center = GetBoundsCenter();
+
         Gizmos.color = Color.cyan;
-        Gizmos.DrawWireCube(Vector3.zero, boundsSize);
+        Gizmos.DrawWireCube(center, boundsSize);
 
         Gizmos.color = new Color(0f, 1f, 1f, 0.3f);
-        Gizmos.DrawWireCube(Vector3.zero, boundsSize - Vector3.one * boundsSoftZone * 2f);
+        Gizmos.DrawWireCube(center, boundsSize - Vector3.one * boundsSoftZone * 2f);
 
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireCube(Vector3.zero, spawnSize);
+        Gizmos.DrawWireCube(center, spawnSize);
     }
 }

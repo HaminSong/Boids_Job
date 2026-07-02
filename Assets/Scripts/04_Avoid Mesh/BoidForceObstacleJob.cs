@@ -20,6 +20,7 @@ public struct BoidForceObstacleJob : IJobParallelFor
     public float separationWeight;
     public float alignmentWeight;
     public float cohesionWeight;
+    public float3 boundsCenter;
     public float3 boundsHalfSize;
     public float boundsWeight;
     public float boundsSoftZone;
@@ -88,20 +89,23 @@ public struct BoidForceObstacleJob : IJobParallelFor
 
         // ── 경계 처리 ────────────────────────────────────────────
         {
+            // boundsCenter 기준 로컬 좌표로 변환해 계산한다.
+            float3 localPos = posI - boundsCenter;
+
             float3 push = float3.zero;
 
-            float dxPos = boundsHalfSize.x - posI.x;
-            float dxNeg = boundsHalfSize.x + posI.x;
+            float dxPos = boundsHalfSize.x - localPos.x;
+            float dxNeg = boundsHalfSize.x + localPos.x;
             if (dxPos < boundsSoftZone) push.x -= GetBoundaryPush(dxPos);
             if (dxNeg < boundsSoftZone) push.x += GetBoundaryPush(dxNeg);
 
-            float dyPos = boundsHalfSize.y - posI.y;
-            float dyNeg = boundsHalfSize.y + posI.y;
+            float dyPos = boundsHalfSize.y - localPos.y;
+            float dyNeg = boundsHalfSize.y + localPos.y;
             if (dyPos < boundsSoftZone) push.y -= GetBoundaryPush(dyPos);
             if (dyNeg < boundsSoftZone) push.y += GetBoundaryPush(dyNeg);
 
-            float dzPos = boundsHalfSize.z - posI.z;
-            float dzNeg = boundsHalfSize.z + posI.z;
+            float dzPos = boundsHalfSize.z - localPos.z;
+            float dzNeg = boundsHalfSize.z + localPos.z;
             if (dzPos < boundsSoftZone) push.z -= GetBoundaryPush(dzPos);
             if (dzNeg < boundsSoftZone) push.z += GetBoundaryPush(dzNeg);
 
@@ -112,7 +116,7 @@ public struct BoidForceObstacleJob : IJobParallelFor
             float pushLen = math.length(push);
             if (pushLen > 0.001f)
             {
-                float3 towardCenter = -math.normalize(posI);
+                float3 towardCenter = -math.normalize(localPos);
                 force += towardCenter * boundsWeight;
             }
 

@@ -14,6 +14,7 @@ public struct UpdatePositionImprovedJob : IJobParallelForTransform
     public float deltaTime;
     public float minSpeed;
     public float maxSpeed;
+    public float3 boundsCenter;
     public float3 boundsHalfSize;
     public float boundsSoftZone;
 
@@ -24,10 +25,13 @@ public struct UpdatePositionImprovedJob : IJobParallelForTransform
         // transform.position을 한 번만 읽어 감속 계산과 위치 계산에 재사용
         float3 posI = (float3)transform.position;
 
+        // boundsCenter 기준 로컬 좌표로 변환해 경계 거리를 계산한다.
+        float3 localPos = posI - boundsCenter;
+
         // softZone 진입 시 maxSpeed를 minSpeed까지 서서히 낮춤
-        float dxMin = math.min(boundsHalfSize.x - math.abs(posI.x), boundsSoftZone);
-        float dyMin = math.min(boundsHalfSize.y - math.abs(posI.y), boundsSoftZone);
-        float dzMin = math.min(boundsHalfSize.z - math.abs(posI.z), boundsSoftZone);
+        float dxMin = math.min(boundsHalfSize.x - math.abs(localPos.x), boundsSoftZone);
+        float dyMin = math.min(boundsHalfSize.y - math.abs(localPos.y), boundsSoftZone);
+        float dzMin = math.min(boundsHalfSize.z - math.abs(localPos.z), boundsSoftZone);
         float minDist = math.min(math.min(dxMin, dyMin), dzMin);
         float t = math.saturate(minDist / boundsSoftZone);
         float dynMax = math.lerp(minSpeed, maxSpeed, t);
@@ -42,13 +46,14 @@ public struct UpdatePositionImprovedJob : IJobParallelForTransform
 
         // posI 재사용
         float3 pos = posI + vel * deltaTime;
+        float3 localNextPos = pos - boundsCenter;
 
-        if (pos.x >  boundsHalfSize.x) { pos.x =  boundsHalfSize.x; vel.x = math.min(vel.x, 0f); }
-        if (pos.x < -boundsHalfSize.x) { pos.x = -boundsHalfSize.x; vel.x = math.max(vel.x, 0f); }
-        if (pos.y >  boundsHalfSize.y) { pos.y =  boundsHalfSize.y; vel.y = math.min(vel.y, 0f); }
-        if (pos.y < -boundsHalfSize.y) { pos.y = -boundsHalfSize.y; vel.y = math.max(vel.y, 0f); }
-        if (pos.z >  boundsHalfSize.z) { pos.z =  boundsHalfSize.z; vel.z = math.min(vel.z, 0f); }
-        if (pos.z < -boundsHalfSize.z) { pos.z = -boundsHalfSize.z; vel.z = math.max(vel.z, 0f); }
+        if (localNextPos.x >  boundsHalfSize.x) { pos.x = boundsCenter.x +  boundsHalfSize.x; vel.x = math.min(vel.x, 0f); }
+        if (localNextPos.x < -boundsHalfSize.x) { pos.x = boundsCenter.x - boundsHalfSize.x; vel.x = math.max(vel.x, 0f); }
+        if (localNextPos.y >  boundsHalfSize.y) { pos.y = boundsCenter.y +  boundsHalfSize.y; vel.y = math.min(vel.y, 0f); }
+        if (localNextPos.y < -boundsHalfSize.y) { pos.y = boundsCenter.y - boundsHalfSize.y; vel.y = math.max(vel.y, 0f); }
+        if (localNextPos.z >  boundsHalfSize.z) { pos.z = boundsCenter.z +  boundsHalfSize.z; vel.z = math.min(vel.z, 0f); }
+        if (localNextPos.z < -boundsHalfSize.z) { pos.z = boundsCenter.z - boundsHalfSize.z; vel.z = math.max(vel.z, 0f); }
 
         velocities[i] = vel;
         positions[i]  = pos;

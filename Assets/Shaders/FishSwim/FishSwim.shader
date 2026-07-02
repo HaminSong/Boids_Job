@@ -21,8 +21,8 @@ Shader "Custom/FishSwim"
         _TailInfluence  ("Tail Influence", Range(0,1)) = 0.2
 
         [Header(Mesh Range)]
-        _XMin ("X Min", Float) = -2.75  // 메시 로컬 X 최솟값 (머리)
-        _XMax ("X Max", Float) =  2.5   // 메시 로컬 X 최댓값 (꼬리)
+        _XMin ("X Min", Float) = -2.75
+        _XMax ("X Max", Float) =  2.5
     }
 
     SubShader
@@ -40,7 +40,10 @@ Shader "Custom/FishSwim"
 
             // GPU Instancing
             #pragma multi_compile_instancing
-            #pragma instancing_options assumeuniformscaling  // 균일 스케일 가정으로 행렬 연산 최적화
+            #pragma instancing_options assumeuniformscaling
+
+            // 안개
+            #pragma multi_compile_fog
 
             // 조명 및 그림자
             #pragma multi_compile _ _FORWARD_PLUS

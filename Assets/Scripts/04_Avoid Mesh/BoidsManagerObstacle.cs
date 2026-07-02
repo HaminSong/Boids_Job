@@ -43,6 +43,10 @@ public class BoidsManagerObstacle : MonoBehaviour
     public float cohesionWeight = 1.0f;
 
     [Header("Boundary")]
+    [Tooltip("바운더리 중심 오프셋. 비워두면(true) 이 오브젝트의 transform.position을 중심으로 사용한다.")]
+    public bool useTransformAsCenter = true;
+    [Tooltip("useTransformAsCenter가 false일 때 사용할 바운더리 중심 좌표")]
+    public Vector3 boundsCenter = Vector3.zero;
     [Tooltip("박스 경계 크기 (XYZ)")]
     public Vector3 boundsSize = new Vector3(600f, 225f, 600f);
     [Tooltip("경계 안쪽 감지 시작 거리")]
@@ -66,6 +70,10 @@ public class BoidsManagerObstacle : MonoBehaviour
     [Tooltip("장애물 회피 힘 가중치")]
     public float avoidWeight = 50f;
 
+    [Header("Avoidance Debug")]
+    [Tooltip("장애물에 히트된 Boid의 회피 레이를 기즈모로 가시화한다.")]
+    public bool showAvoidGizmos = false;
+
     [Header("Job Tuning")]
     [Tooltip("IJobParallelFor 배치 크기")]
     public int innerBatchCount = 64;
@@ -77,6 +85,11 @@ public class BoidsManagerObstacle : MonoBehaviour
     NativeArray<SpherecastCommand> rayCommands;
     NativeArray<RaycastHit> rayHits;
     TransformAccessArray transformAccessArray;
+
+    Vector3 GetBoundsCenter()
+    {
+        return useTransformAsCenter ? transform.position : boundsCenter;
+    }
 
     void Start()
     {
@@ -93,6 +106,7 @@ public class BoidsManagerObstacle : MonoBehaviour
     void SpawnBoids()
     {
         Transform[] transforms = new Transform[boidCount];
+        Vector3 center = GetBoundsCenter();
 
         for (int i = 0; i < boidCount; i++)
         {
@@ -101,7 +115,7 @@ public class BoidsManagerObstacle : MonoBehaviour
             int attempts = 0;
             do
             {
-                spawnPos = new Vector3(
+                spawnPos = center + new Vector3(
                     UnityEngine.Random.Range(-spawnSize.x * 0.5f, spawnSize.x * 0.5f),
                     UnityEngine.Random.Range(-spawnSize.y * 0.5f, spawnSize.y * 0.5f),
                     UnityEngine.Random.Range(-spawnSize.z * 0.5f, spawnSize.z * 0.5f)
@@ -110,7 +124,7 @@ public class BoidsManagerObstacle : MonoBehaviour
             }
             while (Physics.CheckSphere(spawnPos, sphereRadius * 2f, obstacleLayerMask) && attempts < 20);
 
-            GameObject go = Instantiate(boidPrefab, spawnPos, UnityEngine.Random.rotation);
+            GameObject go = Instantiate(boidPrefab, spawnPos, UnityEngine.Random.rotation, transform);
             transforms[i] = go.transform;
 
             Vector3 randDir = UnityEngine.Random.onUnitSphere;
@@ -125,6 +139,8 @@ public class BoidsManagerObstacle : MonoBehaviour
 
     void Update()
     {
+        float3 center = (float3)GetBoundsCenter();
+
         // 1) SpherecastCommand 명령 생성
         var prepareJob = new PrepareRaycastJob
         {
@@ -169,6 +185,7 @@ public class BoidsManagerObstacle : MonoBehaviour
             separationWeight = separationWeight,
             alignmentWeight = alignmentWeight,
             cohesionWeight = cohesionWeight,
+            boundsCenter = center,
             boundsHalfSize = halfSize,
             boundsSoftZone = boundsSoftZone,
             boundsWeight = boundsWeight,
@@ -188,7 +205,9 @@ public class BoidsManagerObstacle : MonoBehaviour
             deltaTime = Time.deltaTime,
             minSpeed = minSpeed,
             maxSpeed = maxSpeed,
+            boundsCenter = center,
             boundsHalfSize = halfSize,
+            boundsSoftZone = boundsSoftZone,
         };
         JobHandle updateHandle = updateJob.Schedule(transformAccessArray, forceHandle);
 
@@ -208,16 +227,22 @@ public class BoidsManagerObstacle : MonoBehaviour
 
     void OnDrawGizmosSelected()
     {
+        Vector3 center = GetBoundsCenter();
+
         Gizmos.color = Color.cyan;
-        Gizmos.DrawWireCube(Vector3.zero, boundsSize);
+        Gizmos.DrawWireCube(center, boundsSize);
 
         Gizmos.color = new Color(0f, 1f, 1f, 0.3f);
-        Gizmos.DrawWireCube(Vector3.zero, boundsSize - Vector3.one * boundsSoftZone * 2f);
+        Gizmos.DrawWireCube(center, boundsSize - Vector3.one * boundsSoftZone * 2f);
 
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireCube(Vector3.zero, spawnSize);
+        Gizmos.DrawWireCube(center, spawnSize);
+    }
 
-        // 장애물에 히트된 Boid만 시각화
+    // 장애물에 히트된 Boid만 시각화
+    void OnDrawGizmos()
+    {
+        if (!showAvoidGizmos) return;
         if (!positions.IsCreated || !velocities.IsCreated || !rayHits.IsCreated) return;
 
         Gizmos.color = Color.red;
